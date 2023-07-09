@@ -13,6 +13,7 @@ from .serializers import (
     UserRegisterSerializer,
     UserLoginSerializer,
     ActivateSerializer,
+    ChangePasswordSerializer,
 )
 from django.contrib.auth import get_user_model
 from .models import Profile
@@ -35,6 +36,8 @@ class UserViewSet(viewsets.ModelViewSet):
             self.permission_classes = [AllowAny]
         if self.action == "activate":
             self.permission_classes = [AllowAny]
+        if self.action == "reset_password":
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -46,11 +49,16 @@ class UserViewSet(viewsets.ModelViewSet):
             return UserLoginSerializer
         if self.action == "activate":
             return ActivateSerializer
+        if self.action == "reset_password":
+            return ChangePasswordSerializer
         return self.serializer_class
 
     def get_queryset(self):
         queryset = Profile.objects.filter(Q(user__is_verified=True))
         return queryset
+
+    def get_instance(self):
+        return self.request.user
 
     def list(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -75,7 +83,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         if user is None:
             return Response(
-                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+                {"error": "Invalid credentials"}, status=status.HTTP_404_NOT_FOUND
             )
 
         if user.is_verified == False:
@@ -96,4 +104,16 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         return Response(
             {"message": "Email verification success"}, status=status.HTTP_200_OK
+        )
+
+    @action(detail=False, methods=["POST"])
+    def reset_password(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = self.get_instance()
+        user.set_password(serializer.data.get("new_password"))
+        user.save()
+        return Response(
+            {"message": "password changes successfuly"}, status=status.HTTP_200_OK
         )
