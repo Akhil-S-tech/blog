@@ -106,6 +106,36 @@ class ActivateSerializer(UidSerializer):
     pass
 
 
+class PasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(
+        style={"input_type": "password"}, write_only=True
+    )
+
+    def validate(self, attrs):
+        user = getattr(self, "user", None) or self.context["request"].user
+        assert user is not None
+
+        try:
+            validate_password(attrs["new_password"], user)
+        except ValidationError as e:
+            error = serializers.as_serializer_error(e)
+            raise serializers.ValidationError(error)
+
+        return super().validate(attrs)
+
+
+class PasswordRetypeSerializer(PasswordSerializer):
+    confirm_password = serializers.CharField(
+        style={"input_type": "password"}, write_only=True
+    )
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if attrs.get("password") == attrs.get("confirm_password"):
+            return attrs
+        raise serializers.ValidationError("Password not matching.")
+
+
 class CurrentPasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(
         style={"input_type": "password"}, write_only=True
