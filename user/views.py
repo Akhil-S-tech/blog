@@ -86,7 +86,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         refresh = RefreshToken.for_user(user)
         return Response(
-            {"refresh": str(refresh), "access": str(refresh.access)},
+            {"refresh": str(refresh), "access": str(refresh.access_token)},
             status=status.HTTP_200_OK,
         )
 
