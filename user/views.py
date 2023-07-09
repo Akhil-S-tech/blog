@@ -45,6 +45,8 @@ class UserViewSet(viewsets.ModelViewSet):
             self.permission_classes = [AllowAny]
         if self.action == "set_password":
             self.permission_classes = [AllowAny]
+        if self.action == "me":
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -62,6 +64,8 @@ class UserViewSet(viewsets.ModelViewSet):
             return ForgotPasswordSerializer
         if self.action == "set_password":
             return SetNewPasswordSerializer
+        if self.action == "me":
+            return UserSerializer
         return self.serializer_class
 
     def get_queryset(self):
@@ -75,6 +79,13 @@ class UserViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset()
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["GET", "DELETE"])
+    def me(self, request, *args, **kwargs):
+        self.get_object = self.get_instance
+        if request.method == "GET":
+            serializer = self.get_serializer(self.get_object().profile, many=False)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["POST"])
     def register(self, request, *args, **kwargs):
