@@ -104,3 +104,16 @@ class UidSerializer(serializers.Serializer):
 
 class ActivateSerializer(UidSerializer):
     pass
+
+
+class CurrentPasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(
+        style={"input_type": "password"}, write_only=True
+    )
+
+    def validate_current_password(self, value):
+        is_valid_password = self.context["request"].user.check_password(value)
+
+        if is_valid_password:
+            return value
+        return ValidationError("Invalid password")
