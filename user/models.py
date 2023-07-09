@@ -1,8 +1,14 @@
+from typing import Iterable, Optional
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser,PermissionsMixin,BaseUserManager
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    PermissionsMixin,
+    BaseUserManager,
+)
 from django.urls import reverse
 
 # Create your models here.
+
 
 # Custom user manager
 class UserManager(BaseUserManager):
@@ -15,6 +21,7 @@ class UserManager(BaseUserManager):
             raise ValueError("Name is required")
 
         email = self.normalize_email(email)
+        username = username.lower()
         user = self.model(username=username, email=email, name=name, **others)
         user.set_password(password)
         user.save(using=self._db)
@@ -37,13 +44,15 @@ class UserManager(BaseUserManager):
 
 # Custom user model
 
-class User(AbstractBaseUser,PermissionsMixin):
-    username=models.CharField(max_length=20,unique=True)
-    name=models.CharField(max_length=20)
-    email=models.EmailField(max_length=255,unique=True)
-    is_superuser=models.BooleanField(default=False)
-    is_staff=models.BooleanField(default=False)
-    is_active=models.BooleanField(default=True)
+
+class User(AbstractBaseUser, PermissionsMixin):
+    username = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=20)
+    email = models.EmailField(max_length=255, unique=True)
+    is_superuser = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_verified = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now=True)
     objects = UserManager()
     USERNAME_FIELD = "username"
@@ -55,7 +64,6 @@ class User(AbstractBaseUser,PermissionsMixin):
     class Meta:
         verbose_name = "User"
         verbose_name_plural = "Users"
-
 
 
 # base model inheritted by every model
