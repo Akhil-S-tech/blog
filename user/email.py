@@ -8,3 +8,7 @@ def send_email_verification(user):
 
     print("uid", uid)
     print("token", token)
+
+
+def email_verification_success(user):
+    print(f"Email verificaion succes", user.email)
