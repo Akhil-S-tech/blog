@@ -80,8 +80,8 @@ class UserLoginSerializer(serializers.Serializer):
 
 
 class UidSerializer(serializers.Serializer):
-    uid = serializers.CharField()
-    token = serializers.CharField()
+    uid = serializers.CharField(write_only=True)
+    token = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
         try:
@@ -155,3 +155,7 @@ class ForgotPasswordSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         return super().validate(attrs)
+
+
+class SetNewPasswordSerializer(UidSerializer, PasswordRetypeSerializer):
+    pass
