@@ -16,6 +16,7 @@ from .serializers import (
     ActivateSerializer,
     ChangePasswordSerializer,
     ForgotPasswordSerializer,
+    SetNewPasswordSerializer,
 )
 from django.contrib.auth import get_user_model
 from .models import Profile
@@ -42,6 +43,8 @@ class UserViewSet(viewsets.ModelViewSet):
             self.permission_classes = [IsAuthenticated]
         if self.action == "forgot_password":
             self.permission_classes = [AllowAny]
+        if self.action == "set_password":
+            self.permission_classes = [AllowAny]
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -57,6 +60,8 @@ class UserViewSet(viewsets.ModelViewSet):
             return ChangePasswordSerializer
         if self.action == "forgot_password":
             return ForgotPasswordSerializer
+        if self.action == "set_password":
+            return SetNewPasswordSerializer
         return self.serializer_class
 
     def get_queryset(self):
@@ -144,4 +149,15 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(
             {"message": f"Email send seccessfully {user.email}"},
             status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["POST"])
+    def set_password(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.user
+        user.set_password(serializer.data.get("new_password"))
+        user.save()
+        return Response(
+            {"message": "Password set successfully"}, status=status.HTTP_200_OK
         )
