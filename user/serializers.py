@@ -148,3 +148,10 @@ class CurrentPasswordSerializer(serializers.Serializer):
 
 class ChangePasswordSerializer(CurrentPasswordSerializer, PasswordRetypeSerializer):
     pass
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(style={"input_type": "email"})
+
+    def validate(self, attrs):
+        return super().validate(attrs)
