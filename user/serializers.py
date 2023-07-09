@@ -107,9 +107,7 @@ class ActivateSerializer(UidSerializer):
 
 
 class PasswordSerializer(serializers.Serializer):
-    new_password = serializers.CharField(
-        style={"input_type": "password"}, write_only=True
-    )
+    new_password = serializers.CharField(style={"input_type": "password"})
 
     def validate(self, attrs):
         user = getattr(self, "user", None) or self.context["request"].user
@@ -130,9 +128,8 @@ class PasswordRetypeSerializer(PasswordSerializer):
     )
 
     def validate(self, attrs):
-        attrs = super().validate(attrs)
-        if attrs.get("password") == attrs.get("confirm_password"):
-            return attrs
+        if attrs.get("new_password") == attrs.get("confirm_password"):
+            return super().validate(attrs)
         raise serializers.ValidationError("Password not matching.")
 
 
@@ -143,7 +140,11 @@ class CurrentPasswordSerializer(serializers.Serializer):
 
     def validate_current_password(self, value):
         is_valid_password = self.context["request"].user.check_password(value)
-
         if is_valid_password:
             return value
-        return ValidationError("Invalid password")
+
+        raise serializers.ValidationError("Invalid password")
+
+
+class ChangePasswordSerializer(CurrentPasswordSerializer, PasswordRetypeSerializer):
+    pass
