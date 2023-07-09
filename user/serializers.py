@@ -67,3 +67,11 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             user = USER.objects.create_user(**validated_data)
             send_email_verification(user)
         return user
+
+
+class UserLoginSerializer(serializers.Serializer):
+    username = serializers.CharField(style={"input_type": "password"})
+    password = serializers.CharField(style={"input_type": "password"})
+
+    def validate(self, attrs):
+        return super().validate(attrs)
