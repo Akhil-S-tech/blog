@@ -137,7 +137,4 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),  # days=1
     "ROTATE_REFRESH_TOKENS": True,
     "UPDATE_LAST_LOGIN": False,
-REST_FRAMEWORK={ 'DEFAULT_AUTHENCATION_CLASSES':['rest_framework.authencation.SessionAuthencation']
-
-
 }
