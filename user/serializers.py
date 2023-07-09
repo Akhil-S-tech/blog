@@ -5,7 +5,9 @@ from django.db import IntegrityError
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from .models import Profile
-from .email import send_email_verification
+from .email import send_email_verification, email_verification_success
+from .utils import decode_uid
+from .tokens import email_verification_token
 
 USER = get_user_model()
 
@@ -75,3 +77,30 @@ class UserLoginSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         return super().validate(attrs)
+
+
+class UidSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+
+    def validate(self, attrs):
+        try:
+            uid = decode_uid(attrs.get("uid"))
+            self.user = USER.objects.get(id=uid)
+        except:
+            self.user = None
+
+        if self.user is not None:
+            if self.user and email_verification_token.check_token(
+                self.user, attrs.get("token")
+            ):
+                self.user.is_verified = True
+                self.user.save()
+                email_verification_success(self.user)
+                return super().validate(attrs)
+        else:
+            raise serializers.ValidationError("Invalid link or link expired")
+
+
+class ActivateSerializer(UidSerializer):
+    pass
